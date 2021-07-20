@@ -5,8 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socket IO simple real time chat service</title>
+    <!-- BOOTSTRAP CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- CUSTOM CSS -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -66,59 +68,76 @@
     </footer>
     <!-- SCRIPTS -->
     <section>
-        <script src="js/styles.js"></script>
+        <!-- BOOTSTRAP JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
+        <!-- Socket IO initialization -->
         <script src="/socket.io/socket.io.js"></script>
+
+        <!-- Socket IO configuration -->
         <script>
+            //Socket.io initialization on client
             var socket = io();
+            //Getting form element
             var form = document.getElementById('form');
+            //Gettin toast instance
             var messagetoast = new bootstrap.Toast(document.querySelector('#nomessagetoast'), {
                     autohide: true
                 });
-
+            //On submit method override
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                
+                //Getting message input
                 var message = document.getElementById('message');
                 if(!message.value || message.value== ""){
+                    //Show toast if not exists
                     messagetoast.show()
-                    console.log("no")
                     return
                 }
+                //removing no-messages text
                 try{
                     var noMessageText = document.getElementById('no-message').remove()
                 }catch{
                     //message already removed
                 }
+                //Getting username input
                 var username = document.getElementById('username');
+                //Creating data structure
                 var data = {
                     "message": message.value,
                     "username":username.value
                 }
+                //Clean message input value
                 message.value = ""
+                //Sending data to Socket.io Server (on reception method)
                 socket.emit('reception', data);
             });
-
+            //On receiving data through broadcast method
             socket.on('broadcast', function (msg) {
+                    //Getting chat container
                     var chat = document.getElementById('chat-container')
+                    //Creating default list elemement
                     let li = document.createElement("li")
-
+                    //Setting username received
                     let span = document.createElement("span")
                     span.append(msg.username)
-
+                    //Checking if self id or not
                     if(msg.id !== socket.id){
+                        //Stablishing style for others
                         li.className = "list-group-item d-flex justify-content-between align-items-center"
                         span.className = 'badge bg-primary rouded-pill'
                         li.append(msg.message)
                         li.append(span)
                     }
                     else{
+                        //Stablishing style for self
                         li.className = "list-group-item list-group-item-action active self-message "
                         li.append(msg.message)
                     }
+                    //Adding list element to chat container
                     chat.appendChild(li)
+                    //Scrolling to bottom on chat container
                     chat.scrollTop = chat.scrollHeight
                 });
         </script>
