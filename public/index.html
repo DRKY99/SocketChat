@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket IO simple real time chat service</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header></header>
+    <main>
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-6">
+                            Socket IO simple live chat
+                        </div>
+                        <div class="col-6">
+                            <input type="text" class="form-control" name="username" id="username" placeholder="username">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">Chat</h4>
+                    
+                    <div class="container">
+                        <ul class="list-group" id="chat-container">
+
+                            <li class="list-group-item disabled" aria-disabled="true" id="no-message">No messages</li>
+                            
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <form id="form" action="">
+                        <div class="input-group col-12">
+                            <input type="text"  class="form-control" name="message" id="message" placeholder="Message" aria-describedby="send-button">
+                            <button class="btn btn-outline-secondary" type="submit" id="send-button">Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="position-fixed top-0 p-3 " style="z-index: 11">
+            <div id="nomessagetoast" class="toast hide bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-body">
+                    You must add some text!
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="position-relative bottom-0 start-50 translate-middle-x">
+        <div class="container">
+            <div class="row watermark-text">
+                    <p>Ariel Lara Pedraza</p>
+                    <p>Socket IO simple live chat</p>
+            </div>
+        </div>
+        </div>
+    </footer>
+    <!-- SCRIPTS -->
+    <section>
+        <script src="js/styles.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io();
+            var form = document.getElementById('form');
+            var messagetoast = new bootstrap.Toast(document.querySelector('#nomessagetoast'), {
+                    autohide: true
+                });
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                
+                var message = document.getElementById('message');
+                if(!message.value || message.value== ""){
+                    messagetoast.show()
+                    console.log("no")
+                    return
+                }
+                try{
+                    var noMessageText = document.getElementById('no-message').remove()
+                }catch{
+                    //message already removed
+                }
+                var username = document.getElementById('username');
+                var data = {
+                    "message": message.value,
+                    "username":username.value
+                }
+                message.value = ""
+                socket.emit('reception', data);
+            });
+
+            socket.on('broadcast', function (msg) {
+                    var chat = document.getElementById('chat-container')
+                    let li = document.createElement("li")
+
+                    let span = document.createElement("span")
+                    span.append(msg.username)
+
+                    if(msg.id !== socket.id){
+                        li.className = "list-group-item d-flex justify-content-between align-items-center"
+                        span.className = 'badge bg-primary rouded-pill'
+                        li.append(msg.message)
+                        li.append(span)
+                    }
+                    else{
+                        li.className = "list-group-item list-group-item-action active self-message "
+                        li.append(msg.message)
+                    }
+                    chat.appendChild(li)
+                    chat.scrollTop = chat.scrollHeight
+                });
+        </script>
+    </section>
+</body>
+</html>
